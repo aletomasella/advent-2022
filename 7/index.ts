@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 type Directory = {
   name: string;
   files: File[];
-  subdirectories?: Directory[];
+  subdirectories: Directory[];
 };
 
 type File = {
@@ -36,12 +36,24 @@ const partOne = (data: string[]) => {
   commands.forEach((command) => {
     if (Array.isArray(command)) {
       if (command[0] === "cd" && command[1] !== "..") {
+        if (
+          currentDirectory?.subdirectories &&
+          currentDirectory.subdirectories.length > 0
+        ) {
+          const subdirectory = currentDirectory.subdirectories?.find(
+            (directory) => directory.name === command[1]
+          );
+          currentDirectory = subdirectory ? subdirectory : currentDirectory;
+          return;
+        }
         const directory = directories.find(
           (directory) => directory.name === command[1]
         );
         if (directory) {
           currentDirectory = directory;
+          return;
         }
+
         directories.push({
           name: command[1],
           files: [],
@@ -58,12 +70,14 @@ const partOne = (data: string[]) => {
           currentDirectory.subdirectories.push({
             name: command.split(" ")[1],
             files: [],
+            subdirectories: [],
           });
         } else {
           currentDirectory.subdirectories = [
             {
               name: command.split(" ")[1],
               files: [],
+              subdirectories: [],
             },
           ];
         }
